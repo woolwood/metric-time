@@ -41,7 +41,7 @@ class DecimalTime(object):
             self.minutes = minutes
             self.seconds = seconds
             self.milliseconds = milliseconds
-        
+
         def __repr__(self):
             return f"Decimal time: "\
                 f"{self.hours:02}:{self.minutes:02}:{self.seconds:02}."\
@@ -97,9 +97,20 @@ class RepublicanCalendar(object):
             self.month = month
             self.day = day
             self.day_of_the_week = day_of_the_week
-        
+
         def __repr__(self) -> str:
-            return f"Republican date: {self.day_of_the_week} {self.day} {self.month} {self.year:.0f}"
+            return f"Republican date: {self.day_of_the_week} {self.day} {self.month} {int(self.year)}"
+
+    def count_leap_years(self, given_year, given_month, given_day):
+        leap_year_count = 0
+        for year in range(1792, given_year):
+            if year % 4 == 0 and year % 100 != 0:
+                leap_year_count += 1
+
+        if given_year % 4 == 0 and given_year % 100 != 0:
+            if given_month > 2 or (given_month == 2 and given_day == 29):
+                leap_year_count += 1
+        return leap_year_count
 
     def republican_date(self, date):
         """
@@ -110,8 +121,11 @@ class RepublicanCalendar(object):
         """
         time_difference = date - datetime.datetime(year=1791, month=9, day=21, tzinfo=datetime.timezone.utc)
 
-        year = time_difference.days / 365
-        leap_year = year % 4 == 0 and year % 100 != 0
+        counted_leap_years = self.count_leap_years(date.year, date.month, date.day)
+        adjusted_day_count = time_difference.days - counted_leap_years
+        year = adjusted_day_count / 365
+
+        leap_year = int(year) % 4 == 0 and ((int(year) % 100 != 0) or int(year) % 400 == 0)
 
         if leap_year:
             # If leap year, add 1 day
